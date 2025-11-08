@@ -30,24 +30,24 @@ interface Event {
 };
 
 const calculateTotalCost = (events: Event[], firstDate: Date, lastDate: Date): Vendor[] => {
-        const currentMonthEvents = events.filter(event => {
-            return new Date(event.date) >= firstDate && new Date(event.date) <= lastDate;
-        });
-        return currentMonthEvents.reduce((prev, event) => {
-            return [... event.data.reduce((prev, vendor) => {
-                const price = vendors.find(v => v.name === vendor.name)?.price ?? 0;
-                const totalLiters = (vendor.shifts.Morning as number) + (vendor.shifts.Evening as number);
-                const cost = price * totalLiters;
-                const existEvent = prev.find(v => v.name == vendor.name);
-                if (existEvent) {
-                    existEvent.price += cost;
-                } else {
-                    prev.push({ name: vendor.name, price: cost } as Vendor);
-                }
-                return [...prev];
-            }, prev)];
-        }, [] as Vendor[]);
-    };
+    const currentMonthEvents = events.filter(event => {
+        return new Date(event.date) >= firstDate && new Date(event.date) <= lastDate;
+    });
+    return currentMonthEvents.reduce((prev, event) => {
+        return [...event.data.reduce((prev, vendor) => {
+            const price = vendors.find(v => v.name === vendor.name)?.price ?? 0;
+            const totalLiters = (vendor.shifts.Morning as number) + (vendor.shifts.Evening as number);
+            const cost = price * totalLiters;
+            const existEvent = prev.find(v => v.name == vendor.name);
+            if (existEvent) {
+                existEvent.price += cost;
+            } else {
+                prev.push({ name: vendor.name, price: cost } as Vendor);
+            }
+            return [...prev];
+        }, prev)];
+    }, [] as Vendor[]);
+};
 
 const CalendarComponent = () => {
     const [apiKey, setApiKey] = useState<string | null>(localStorage.getItem("milkPantryApiKey"));
@@ -180,7 +180,7 @@ const CalendarComponent = () => {
 
     const getDateStyle = ({ activeStartDate, date, view }: TileArgs): ClassName => {
         if (view === "month") {
-            if(date.toLocaleDateString() === new Date().toLocaleDateString()) {
+            if (date.toLocaleDateString() === new Date().toLocaleDateString()) {
                 return "react-calendar__tile--now";
             }
             return "react-calendar__tile--active";
@@ -190,12 +190,12 @@ const CalendarComponent = () => {
     const getDateContent = ({ activeStartDate, date, view }: TileArgs): React.ReactNode => {
         if (view === "month") {
             const event = events.find(e => e.date === date.toDateString());
-            if (event){
+            if (event) {
                 const totalLiters = event.data?.reduce((prev, vendor) => {
                     return `${prev}${(vendor.shifts.Evening as number) + (vendor.shifts.Morning as number)}L `;
                 }, "");
                 return <p>{totalLiters}</p>;
-            }else{
+            } else {
                 return <p>0L</p>;
             }
         }
@@ -237,69 +237,65 @@ const CalendarComponent = () => {
     if (apiKey) {
         return <div>
             <h1>Milk Calendar</h1>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div>
-                    <Calendar onClickDay={handleDateClick} maxDate={lastDate} minDate={firstDate}
-                        tileClassName={getDateStyle} tileContent={getDateContent} />
-                    <br />
-                    <input type='button' value="Save" onClick={saveToPantry} />
-                    <br />
-                    <br />
+            {
+                showDialog ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <p>{selectedDate}</p>
                     <table border={2}>
                         <tbody>
                             <tr>
                                 <th></th>
-                                <th><p>{firstDate.toLocaleString('default', { month: 'long' })}</p></th>
-                                <th><p>{lastDate.toLocaleString('default', { month: 'long' })}</p></th>
+                                <th><p>Morning</p></th>
+                                <th><p>Evening</p></th>
                             </tr>
-                            {vendors.map(vendor => <tr key={vendor.name}>
-                                <th><p>{vendor.name}</p></th>
-                                <td><p>{totalCostPreviousMonth.find(v => v.name === vendor.name)?.price ?? 0}</p></td>
-                                <td><p>{totalCostCurrentMonth.find(v => v.name === vendor.name)?.price ?? 0}</p></td>
-                            </tr>)}
+                            {
+                                vendors.map(vendor => {
+                                    return (<tr>
+                                        <th><p>{vendor.name}</p></th>
+                                        <td>{vendor.shifts.Morning ? <input style={{width: '3ch'}} type='number' defaultValue={deliveryData.find(x => x.name === vendor.name)?.shifts.Morning as number}
+                                            onChange={e => onInputChange(e, vendor.name, "Morning")} /> : <p />}</td>
+                                        <td>{vendor.shifts.Evening ? <input style={{width: '3ch'}} type='number' defaultValue={deliveryData.find(x => x.name === vendor.name)?.shifts.Evening as number}
+                                            onChange={e => onInputChange(e, vendor.name, "Evening")} /> : <p />}</td>
+                                    </tr>)
+                                })
+                            }
                         </tbody>
                     </table>
-                </div>
-                <div>
-                    {
-                        noAPI &&
-                        <div>
-                            <input type='button' value="Download Data" onClick={downloadJson} />
-                            <input type='file' onChange={loadJson} />
-                        </div>
-                    }
-                </div>
-            </div>
-            {
-                showDialog &&
-                <div style={{ position: "fixed", height: "100%", width: "100%", backgroundColor: "white", top: 0, left: 0 }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                        <p>{selectedDate}</p>
+                    <br />
+                    <span>
+                        <input type='button' value="Ok" onClick={handleOkClick} style={{ marginRight: "1vw" }} />
+                        <input type='button' value="Cancel" onClick={handleCancelClick} />
+                    </span>
+                </div> : <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div>
+                        <Calendar onClickDay={handleDateClick} maxDate={lastDate} minDate={firstDate}
+                            tileClassName={getDateStyle} tileContent={getDateContent} />
+                        <br />
+                        <input type='button' value="Save" onClick={saveToPantry} />
+                        <br />
+                        <br />
                         <table border={2}>
                             <tbody>
                                 <tr>
                                     <th></th>
-                                    <th><p>Morning</p></th>
-                                    <th><p>Evening</p></th>
+                                    <th><p>{firstDate.toLocaleString('default', { month: 'long' })}</p></th>
+                                    <th><p>{lastDate.toLocaleString('default', { month: 'long' })}</p></th>
                                 </tr>
-                                {
-                                    vendors.map(vendor => {
-                                        return (<tr>
-                                            <th><p>{vendor.name}</p></th>
-                                            <td>{vendor.shifts.Morning ? <input type='number' defaultValue={deliveryData.find(x => x.name === vendor.name)?.shifts.Morning as number}
-                                                onChange={e => onInputChange(e, vendor.name, "Morning")} /> : <p />}</td>
-                                            <td>{vendor.shifts.Evening ? <input type='number' defaultValue={deliveryData.find(x => x.name === vendor.name)?.shifts.Evening as number}
-                                                onChange={e => onInputChange(e, vendor.name, "Evening")} /> : <p />}</td>
-                                        </tr>)
-                                    })
-                                }
+                                {vendors.map(vendor => <tr key={vendor.name}>
+                                    <th><p>{vendor.name}</p></th>
+                                    <td><p>{totalCostPreviousMonth.find(v => v.name === vendor.name)?.price ?? 0}/-</p></td>
+                                    <td><p>{totalCostCurrentMonth.find(v => v.name === vendor.name)?.price ?? 0}/-</p></td>
+                                </tr>)}
                             </tbody>
                         </table>
-                        <br />
-                        <span>
-                            <input type='button' value="Ok" onClick={handleOkClick} style={{ marginRight: "1vw" }} />
-                            <input type='button' value="Cancel" onClick={handleCancelClick} />
-                        </span>
+                    </div>
+                    <div>
+                        {
+                            noAPI &&
+                            <div>
+                                <input type='button' value="Download Data" onClick={downloadJson} />
+                                <input type='file' onChange={loadJson} />
+                            </div>
+                        }
                     </div>
                 </div>
             }
