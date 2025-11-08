@@ -211,7 +211,7 @@ const CalendarComponent = () => {
                         name: vendor.name,
                         shifts: {
                             ...vendor.shifts,
-                            [shift]: Number(changeEvent.target.value)
+                            [shift]: Number(changeEvent.target.value ?? 0)
                         }
                     } as Vendor;
                 } else {
@@ -287,6 +287,7 @@ const CalendarComponent = () => {
                                 </tr>)}
                             </tbody>
                         </table>
+                        <br />
                     </div>
                     <div>
                         {
@@ -296,6 +297,7 @@ const CalendarComponent = () => {
                                 <input type='file' onChange={loadJson} />
                             </div>
                         }
+                        <br />
                     </div>
                 </div>
             }
