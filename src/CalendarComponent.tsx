@@ -50,7 +50,7 @@ const calculateTotalCost = (events: Event[], firstDate: Date, lastDate: Date): V
     };
 
 const CalendarComponent = () => {
-    const [apiKey, setApiKey] = useState<string | null>(localStorage.getItem("attendancePantryApiKey"));
+    const [apiKey, setApiKey] = useState<string | null>(localStorage.getItem("milkPantryApiKey"));
     const [selectedDate, setSelectedDate] = useState<string>("");
     const [deliveryData, setDeliveryData] = useState<Vendor[]>(defaultVendorData);
     const [showDialog, setShowDialog] = useState<boolean>(false);
@@ -310,7 +310,7 @@ const CalendarComponent = () => {
                 const regex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
                 if (regex.test(e.target.value)) {
                     setApiKey(e.target.value);
-                    localStorage.setItem("attendancePantryApiKey", e.target.value);
+                    localStorage.setItem("milkPantryApiKey", e.target.value);
                 }
             }} placeholder='Please Enter Pantry API Key!' />
         </div>
